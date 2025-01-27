@@ -1,4 +1,4 @@
-pip --upgrade
+pip install --upgrade pip
 time
 beautifulsoup4
 requests
