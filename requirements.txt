@@ -1,4 +1,4 @@
-python -m pip install --upgrade pip
+--upgrade pip
 time
 beautifulsoup4
 requests
