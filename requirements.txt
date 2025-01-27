@@ -1,0 +1,5 @@
+time
+beautifulsoup4
+requests
+streamlit_card
+streamlit_autorefresh
