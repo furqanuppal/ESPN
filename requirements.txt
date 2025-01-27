@@ -1,6 +1,5 @@
-pip install --upgrade pip
-time
-beautifulsoup4
-requests
-streamlit_card
-streamlit_autorefresh
+pip==24.3.1
+bs4==0.0.2
+requests==2.28.2
+streamlit_card==1.0.2
+streamlit_autorefresh==1.0.1
