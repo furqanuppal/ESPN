@@ -15,7 +15,7 @@ def get_match_cards():
 
     matches = []
 
-    cards = soup.find_all('div', {'class' : 'slick-slide' or 'slick-slide slick-active'}, {'style' : 'outline:none'})   
+    cards = soup.find_all('div', {'class' : 'slick-slide' or 'slick-slide slick-active'}, {'style' : 'outline:none'})  
     if cards:
         for card in cards:
             match = {}
@@ -69,11 +69,12 @@ if match_data:
         
         if match.get('teams'):
             for team in match['teams']:
-                st.write(f"{team.get('name', '')} {team.get('score', '')}")
+                st.write(f"{team.get('name', '')} \t {team.get('score', '')}")
         
         if match.get('result'):
             st.caption(match['result'])
-            st.markdown('---')
-
-        if match.get('other_details'):
-            st.write(f"**{match['other_details']}**")
+            if match.get('other_details'):
+                st.write(f"**{match['other_details']}**")
+                st.markdown('---')
+            else:
+                st.markdown('---')
