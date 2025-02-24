@@ -1,78 +1,109 @@
-import time
-import requests
-from bs4 import BeautifulSoup
 import streamlit as st
+import time
 from streamlit_autorefresh import st_autorefresh
+from cricket import get_cricket_cards
+from hockey import get_hockey_matches
+from tennis import get_tennis_cards
 
-def get_match_cards():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
-    }
-    url = "https://www.espncricinfo.com/"
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.content, "html.parser")
+st.image("sports.png", width=300)
+st.title("Sports Dashboard")
+st.markdown("Select a sport to view live updates.")
 
-    matches = []
+sport = st.sidebar.radio("Select a Sport", ("Home", "Cricket", "Tennis", "Hockey"))
+
+if sport == "Home":
+    st.header("Welcome to the Sports Dashboard!")
+    st.write("Click on a sport from the sidebar to view live match updates.")
+
+elif sport == "Cricket":
+    st.image("cricket.png", width=300)
+    st.title("Today Matches - ESPN CRIC INFO")
+    st.markdown("Live updates every five minutes.")
     
-    cards = soup.find_all('div', {'class' : 'slick-slide' or 'slick-slide slick-active'}, {'style' : 'outline:none'})  
-    if cards:
-        for card in cards:
-            match = {}
-            match_status = card.find('span', class_='ds-text-tight-xs ds-font-bold ds-uppercase ds-leading-5')
-            match['status'] = match_status.text.strip() if match_status else ""
-
-            details = card.find('span', class_='ds-text-tight-xs ds-text-typo-mid2')
-            match['details'] = details.text.strip() if details else ""
-
-            teams = []
-            all_teams = card.find_all('div', class_=('ci-team-score ds-flex ds-justify-between ds-items-center ds-text-typo', 'ci-team-score ds-flex ds-justify-between ds-items-center ds-text-typo ds-opacity-50'))
-            for team in all_teams:
-                team_name = team.find('p', class_=('ds-text-tight-s ds-font-bold ds-capitalize ds-truncate', 'ds-text-tight-s ds-font-bold ds-capitalize ds-truncate !ds-text-typo-mid3'))
-                team_name = team_name.text.strip() if team_name else ""
+    match_data = get_cricket_cards()
+    
+    if match_data:
+        count = st_autorefresh(interval=300000, key="autorefresh_key")
+        time.sleep(2)
+        
+        cols = st.columns(3)
+        
+        for i, match in enumerate(match_data):
+            col = cols[i % 3]
+            with col:
+                if match.get('status') or match.get('details'):
+                    st.subheader(f"{match.get('status', '')} {match.get('details', '')}")
                 
-                team_score_tag = team.find('div', class_='ds-text-compact-s ds-text-typo ds-text-right ds-whitespace-nowrap')
-                team_score = team_score_tag.text.strip() if team_score_tag else ""
+                if match.get('teams'):
+                    for team in match['teams']:
+                        st.write(f"{team.get('name', '')} \t {team.get('score', '')}")
                 
-                teams.append({'name': team_name, 'score': team_score})
-            
-            match['teams'] = teams
-            
-            today_details = card.find('div', class_='ds-text-tight-xs ds-text-right')
-            match['other_details'] = today_details.text if today_details else ""
+                if match.get('result'):
+                    st.caption(match['result'])
+                    if match.get('other_details'):
+                        st.write(f"**{match['other_details']}**")
+                        st.markdown('---')
+                    else:
+                        st.markdown('---')
 
-            result_details = card.find('div', class_='ds-h-3')
-            match['result'] = result_details.text.strip() if result_details else ""
+elif sport == "Hockey":
+    st.image("hockey.png", width=300)
+    st.title("Today Matches - FIH HOCKEY")
+    st.markdown("Live updates every two minutes.")
 
-            matches.append(match)
+    match_data = get_hockey_matches()
 
-    return matches if matches else None
+    if match_data:
+        count = st_autorefresh(interval=120000, key="autorefresh_key")
+        time.sleep(2)
+        
+        cols = st.columns(3)
+        
+        for i, match in enumerate(match_data):
+            col = cols[i % 3]
+            with col:
+                st.subheader(f"{match.get('title', '')}")
+                
+                if match.get('status') or match.get('time'):
+                    st.write(f"{match.get('category', '')} - {match.get('status', '')} - {match.get('time', '')}")
+                
+                if match.get('teams'):
+                    for team in match['teams']:
+                        st.write(f"{team.get('name', '')} \t {team.get('score', '')}")
+                
+                if match.get('venue'):
+                    st.caption(f"{match.get('venue', '')}")
+                    
+                st.markdown('---')
+    else:
+        st.caption("NO MATCH IN PROGRESS")
 
-st.image("logo.png")
-st.title('Today Matches - ESPN CRIC INFO')
-st.markdown('Live updates every five minutes.')
+elif sport == "Tennis":
+    st.image("tennis.png", width=300)
+    st.title("Today Matches - TENNIS.COM")
+    st.markdown("Live updates every two minutes.")
 
-match_data = get_match_cards()
+    match_data = get_tennis_cards()
 
-if match_data:
-    count = st_autorefresh(interval=300000, key="autorefresh_key")
-    time.sleep(2)
-    
-    cols = st.columns(3)
-    
-    for i, match in enumerate(match_data):
-        col = cols[i % 3]
-        with col:
-            if match.get('status') or match.get('details'):
-                st.subheader(f"{match.get('status', '')} {match.get('details', '')}")
-            
-            if match.get('teams'):
-                for team in match['teams']:
-                    st.write(f"{team.get('name', '')} \t {team.get('score', '')}")
-            
-            if match.get('result'):
-                st.caption(match['result'])
-                if match.get('other_details'):
-                    st.write(f"**{match['other_details']}**")
-                    st.markdown('---')
-                else:
-                    st.markdown('---')
+    if match_data:
+        count = st_autorefresh(interval=120000, key="autorefresh_key")
+        time.sleep(2)
+        
+        cols = st.columns(3)
+        
+        for i, match in enumerate(match_data):
+            col = cols[i % 3]
+            with col:
+                st.subheader(f"{match.get('tournament', '')} ({match.get('match_type', '')})")
+                
+                if match.get('status'):
+                    st.write(f"**Status:** {match.get('status')} - {match.get('time')}")
+                
+                if 'teams' in match and isinstance(match['teams'], list):
+                    for competitor in match['teams']:
+                        st.write(f"**{competitor.get('name', '')}** - {competitor.get('score', '')}")
+
+                if match.get('winner'):
+                    st.success(f"🏆 Winner: {match.get('winner')}")
+
+                st.markdown('---')
